@@ -1,0 +1,52 @@
+function Point(x, y){
+    this.x = x;
+    this.y = y;
+};
+
+/*
+
+Given left and right site, compute the line equation for the bisector
+    ax + by + c = 0
+    y = -a/b x - c/b
+
+    Generally make a = -a/b, c = -c/b except for vertical line
+        then b = 0, c = 0 and a = the line!
+    a = 0 for horizontal line
+
+*/
+
+function Line(left_site, right_site){
+
+    if(right_site.y == left_site.y){
+        this.c = (right_site.x + left_site.x) / 2.0;
+        this.b = 0;
+        this.a = 1;
+        return;
+    }
+
+    /*
+        Bisector is perpendicular to line between left_site and right_site
+
+    */
+
+    const bisector_slope = - (right_site.x - left_site.x) / ( right_site.y  - left_site.y ); 
+    this.a = bisector_slope;
+    this.b = 1.0;
+    this.c = left_site.y - bisector_slope * left_site.x;
+
+}
+
+function Edge(start_point, left_site, right_site) {
+
+    // console.log('In edge', start_point, left_site, right_site);
+
+    this.start_point = start_point;
+    this.end_point = null;
+    this.left_site = left_site;
+    this.right_site = right_site;
+    this.line = new Line(left_site, right_site);
+    this.neighbor = null;
+    this.direction = new Point(right_site.y - left_site.y ,  -(right_site.x-left_site.x) );
+};
+
+export {Edge, Line, Point};
