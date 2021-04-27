@@ -11,8 +11,9 @@ function Event(point, is_circle, fake = false, parabola = null) {
 };
 
 /*
-Min Binary Heap
+Max Binary Heap
 */
+
 function Event_Queue(sites, fake_events = null) {
 
     // console.log("Calling Event_Queue");

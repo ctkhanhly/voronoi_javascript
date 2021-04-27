@@ -539,7 +539,7 @@ Voronoi.prototype.clip_point = function(edge){
 
     
 
-    const { start_point, end_point, left_site, right_site, line, neighbor, direction} = edge;
+    const { start_point, end_point, left_site, right_site, line, direction} = edge;
 
     console.log("Calling Event_Queue clip_point", start_point, direction);
     var new_start, new_end;
@@ -654,7 +654,7 @@ Voronoi.prototype.clip_point = function(edge){
     if(this.get_distance(new_start, new_end) < this.EPS)
         return null;
     
-    return {source:new_start, end:new_end, left_site, right_site, neighbor};
+    return {source:new_start, end:new_end, left_site, right_site};
 }
 
 
@@ -663,14 +663,24 @@ Voronoi.prototype.clip_edges = function (){
     // console.log("Calling Voronoi clip_edges");
 
     var segments = [];
+    var e_idx_to_seg_idx = {};
     for(var i = 0; i < this.edges.length; ++i){
 
         const segment = this.clip_point(this.edges[i]);
-        if(segment)
+        if(segment){
+            e_idx_to_seg_idx[i] = segments.length;
             segments.push(segment);
-
+        }
     }
-    this.segments = segments;
+    for(var i = 0; i < this.edges.length; ++i){
+
+        const edge = this.edges[i];
+        if(edge.neighbor && i in e_idx_to_seg_idx && i+1 in e_idx_to_seg_idx){
+            segments[ e_idx_to_seg_idx[i] ].source = segments[ e_idx_to_seg_idx[i+1] ].end;
+            segments[ e_idx_to_seg_idx[i+1] ] = null;
+        }
+    }
+    this.segments = segments.filter((segment)=>segment);
     console.log(this.segments, segments);
     return this;
 }
@@ -682,13 +692,15 @@ Voronoi.prototype.join_neighbor_edges = function (){
     for(var i = 0; i < this.segments.length; ++i){
         var segment = this.segments[i];
         if(segment.neighbor){
-            segment.start_point = segment.neighbor.end_point;
-            // delete segment.neighbor;
-            segment.neighbor.mark = true;
+            console.log('joined', segment, segment.neighbor);
+            segment.source = segment.neighbor.end;
+            delete segment.neighbor;
+            segment.neighbor = null;
+            // segment.neighbor.mark = true;
         }
-        else segment.neighbor = true;
+        // else segment.neighbor = true;
     }
-    return this.segments = this.segments.filter(function(segment){ return segment.neighbor ;});
+    return this.segments = this.segments.filter(function(segment){ return segment ;});
 
     // return this.segments = this.segments.map(function (segment){
     //     // if(!segment){
@@ -718,6 +730,35 @@ Voronoi.prototype.get_polygons = function(segments){
         segment.right_site.points.push(segment.source);
         segment.right_site.points.push(segment.end);
     } );
+    
+    var corners = [ new Point(0,0), new Point(this.width, 0), 
+        new Point(0, this.height), new Point(this.width, this.height)];
+
+    var top_left, top_right, bottom_left, bottom_right;
+
+    for(var i = 0; i < this.sites.length; ++i){
+        const site = this.sites[i];
+        if(!top_left || this.get_distance(corners[0], site) < this.get_distance(corners[0], top_left) ){
+            top_left = site;
+        }
+        if(!top_right || this.get_distance(corners[1], site) < this.get_distance(corners[1], top_right) ){
+            top_right = site;
+        }
+        if(!bottom_left || this.get_distance(corners[2], site) < this.get_distance(corners[2], bottom_left) ){
+            bottom_left = site;
+        }
+        if(!bottom_right || this.get_distance(corners[3], site) < this.get_distance(corners[3], bottom_right) ){
+            bottom_right = site;
+        }
+    }
+
+    top_left.points.push(new Point(0,0));
+    top_right.points.push(new Point(this.width, 0));
+    bottom_left.points.push(new Point(0, this.height));
+    bottom_right.points.push(new Point(this.width, this.height));
+    // console.log(top_left.x, top_left.y, top_right.x, top_right.y, bottom_left.x, bottom_left.y, bottom_right.x, bottom_right.y);
+
+    // this.site
     this.polygons = this.sites.map((site) => site.remove_dup().sort_points());
     const height = this.height;
     this.polygons = this.polygons.map((site)=>{

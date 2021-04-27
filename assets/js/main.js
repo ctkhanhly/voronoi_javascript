@@ -22,14 +22,14 @@ var polygon = svg.append("g")
     .selectAll("path")
     .data(voronoi.polygons)
     .enter().append("path")
-    // .call(redraw_polygon);
+    .call(redraw_polygon);
 
 var segments = svg.append("g")
     .attr("class", "links")
     .selectAll("line")
     .data(voronoi.segments)
     .enter().append("line")
-    .call(redraw_segment);
+    // .call(redraw_segment);
 
 var beachline = svg.append("g")
     // .attr("class", "beachline")
@@ -49,7 +49,7 @@ var site = svg.append("g")
 var start = svg.append('g')
         .selectAll("circle")
         // .data(voronoi.beachlines)
-        .data(voronoi.edges)
+        .data(voronoi.segments)
         .enter().append("circle")
         .attr("r", 5)
         .call(redraw_start);
@@ -60,7 +60,7 @@ var end = svg.append('g')
 .data(voronoi.segments)
 .enter().append("circle")
 .attr("r", 5)
-// .call(redraw_end);
+.call(redraw_end);
 
 var boundary = svg.append("g")
     // .attr("class", "sites")
@@ -88,17 +88,17 @@ function redraw_boundary(segment) {
 }
 
 function redraw_start(start){
-    // start.attr('cx', (seg)=>seg.source.x)
-    //     .attr('cy', (seg)=>seg.source.y)
-    //     .attr('fill', 'red');
+    start.attr('cx', (seg)=>seg.source.x)
+        .attr('cy', (seg)=>seg.source.y)
+        .attr('fill', 'red');
 
     // start.attr('cx', (seg)=>seg.p1.x)
     //     .attr('cy', (seg)=>seg.p1.y)
     //     .attr('fill', 'red');
 
-    start.attr('cx', (seg)=>seg.start_point.x)
-        .attr('cy', (seg)=>seg.start_point.y)
-        .attr('fill', 'red');
+    // start.attr('cx', (seg)=>seg.start_point.x)
+    //     .attr('cy', (seg)=>seg.start_point.y)
+    //     .attr('fill', 'red');
 }
 
 function redraw_end(end){

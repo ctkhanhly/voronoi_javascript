@@ -1,7 +1,7 @@
 
 //https://stackoverflow.com/questions/13204562/proper-format-for-drawing-polygon-data-in-d3
 
-var count = 0; 
+// var count = 0; 
 function Cell(x = 0.0, y = 0.0){
     // const pastels = [[224, 187, 228], [255, 223, 211], [149, 125, 173], [254, 200, 216], [210, 145, 188],
     //                 [164, 195, 210], [191, 212, 219], [174, 203, 214], [210, 233, 218], [175, 218, 193]];
@@ -12,11 +12,11 @@ function Cell(x = 0.0, y = 0.0){
     // const b = Math.floor(Math.random()*256);
     const color = Math.floor(Math.random() * pastels.length);
     const a = Math.random();
-    this.color = `rgba(${pastels[count][0]}, ${pastels[count][1]}, ${pastels[count][2]}, ${1})`;
+    this.color = `rgba(${pastels[color][0]}, ${pastels[color][1]}, ${pastels[color][2]}, ${1})`;
     this.x = x;
     this.y = y;
     this.EPS = 1e-2;
-    ++count;
+    // ++count;
 }
 
 Cell.prototype.get_distance = function(pt1, pt2){
@@ -26,14 +26,18 @@ Cell.prototype.get_distance = function(pt1, pt2){
 Cell.prototype.remove_dup = function(){
     var new_pts = [];
     this.points.sort(function(a,b){
-        return a.x == b.x ? a.y < b.y : a.x < b.x;
+        return a.x == b.x ? a.y - b.y : a.x - b.x;
     });
+
+    console.log('remove_dup sorted', this.points);
 
     for(var i = 0; i < this.points.length; ++i){
         if(new_pts.length == 0 || this.get_distance(this.points[i], new_pts[new_pts.length - 1]) > this.EPS){
             new_pts.push(this.points[i]);
         }
     }
+    console.log('remove_dup', new_pts);
+
     this.points = new_pts;
     return this;
 }
@@ -48,7 +52,7 @@ Cell.prototype.sort_points = function(){
     }  
     
     this.points.sort(function(a, b){
-        return Math.atan2(a.y-p.y, a.x-p.x) < Math.atan2(b.y-p.y, b.x-p.x);
+        return Math.atan2(a.y-p.y, a.x-p.x) - Math.atan2(b.y-p.y, b.x-p.x);
     });
     return this;
 }
