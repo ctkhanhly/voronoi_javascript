@@ -83,19 +83,21 @@ Event_Queue.prototype.fix_up = function (index){
 
     // console.log("Calling Event_Queue fix_up");
 
-
-    while(index){
-        const parent = (index-1)/2;
+    const size = this.events.length;
+    while(index > 0){
+        const parent = Math.floor((index-1)/2);
         const left_child = parent*2 + 1;
         const right_child = parent*2 + 2;
         var swap_index = left_child;
         
-        if( this.compare(this.events[right_child],  this.events[swap_index]) ){
+        // console.log(swap_index, right_child, size, parent);
+        if( right_child < size && this.compare(this.events[right_child],  this.events[swap_index]) ){
             // this.swap(this.events[right_child], this.events[parent]);
             swap_index = right_child;
         }
 
-        if( this.compare(this.events[swap_index],  this.events[parent]) ){
+        // console.log(swap_index, size, parent);
+        if( swap_index < size && this.compare(this.events[swap_index],  this.events[parent]) ){
             this.swap(swap_index, parent);
         }
 
@@ -108,8 +110,8 @@ Event_Queue.prototype.compare = function(event1, event2){
     // console.log("Calling Event_Queue compare");
 
     // console.log(event1, event2);
-    return event1.point.y === event2.point.y ? event1.point.x < event2.point.x 
-        : event1.point.y < event2.point.y;
+    return Math.abs(event1.point.y - event2.point.y) < 1e-8 ? event1.point.x < event2.point.x 
+        : event1.point.y > event2.point.y;
 }
 
 Event_Queue.prototype.fix_down = function (index){

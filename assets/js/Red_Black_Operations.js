@@ -255,4 +255,175 @@ Parabola_Tree.prototype.fix_double_black = function(node){
     }
 }
 
+/*
+When inserting a new parabola, two same break point coordinate, check 
+    for site order to determine order of the two break points
+
+*/
+
+Parabola_Tree.prototype.insert = function(parabola, intersection){
+
+    console.log("Calling insert");
+    
+    if(this.root == null){
+        
+        this.root = parabola;
+        this.root.color = this.BLACK;
+        // console.log('insert', this.root, parabola);
+        return;
+    }
+
+    /*
+        Change vertical arc into a breakpoint
+
+    */
+    
+    var node = this.root;
+    var par = node;
+    while(node && node.is_breakpoint){
+        par = node;
+        if(this.is_left_child(node, parabola, intersection)){
+            node = node.left_child;
+        }
+        else{
+            node = node.right_child;
+        }
+        
+    }
+
+    if(this.is_left_child(par, parabola, intersection)){
+        par.left_child = parabola;
+        
+    }
+    else{
+        par.right_child = parabola;
+    }
+
+    parabola.parent = par;
+    // this.rebalance_insertion(parabola);
+}
+
+
+Parabola_Tree.prototype.remove = function(parabola){
+
+    console.log("Calling remove");
+
+    // const parent = parabola.parent;
+    // var sib;
+
+    // if(parabola.left_child === null && parabola.right_child === null){
+    //     if(parent.left_child === parabola){
+    //         parent.left_child = null;
+    //         sib = parent.right_child;
+    //     }
+    //     else{
+    //         parent.right_child = null;
+    //         sib = parent.left_child;
+    //     }
+    // }
+    // else {
+    //     console.log("Parabola is not the leave!!!!!!");
+    // }
+
+    // else if(parabola.left_child === null){
+    //     if(parent.left_child === parabola){
+    //         parent.left_child = parabola.right_child;
+    //     }
+    //     else{
+    //         parent.right_child = parabola.right_child;
+    //     }
+    //     parabola.right_child.parent = parent;
+    // }
+    // else if(parabola.right_child === null){
+        
+    //     if(parent.left_child === parabola){
+    //         parent.left_child = parabola.left_child;
+            
+    //     }
+    //     else{
+    //         parent.right_child = parabola.left_child;
+    //     }
+    //     parabola.left_child.parent = parent;
+    // }
+    // else{
+    //     const successor = this.get_right_breakpoint(parabola);
+
+    // }
+
+
+    // this.rebalance_deletion(parabola);
+}
+
+Parabola_Tree.prototype.is_left_child = function(parent, child, intersection){
+    // const x = parent.is_breakpoint? this.get_coord(parent) : parent.site.x;
+    // if(coord == null){
+    //     console.log('parent is not breakpoint');
+    //     return null;
+    // }
+    // const {x,y} = coord;
+    // const child_x = child.is_breakpoint ? this.get_X(child) : child.site.x;
+    // if(Math.abs(x - child_x) <= this.EPS){
+    //     if(child.is_breakpoint){
+    //         return true;
+    //     }
+    //     else if(child.site == parent.left_site)
+    //         return true;
+    //     else return false;
+    // }
+    // else if(child_x < coord.x)
+    //     return true;
+    // else return false;
+
+    console.log("calling is_left_child");
+
+    console.log('parent');
+    this.print_node(parent);
+    console.log('child');
+    this.print_node(child);
+    
+    // console.log(parent.is_breakpoint, parent.site, parent.left_site, parent.right_site);
+    // console.log(child.is_breakpoint, child.site, child.left_site, child.right_site);
+
+    if(child.is_breakpoint){ //only 1 case in insert_parabola
+                            //do we ever insert breakpoint
+        
+        // if(Math.abs(x - child_x) <= this.EPS && child.right_site === parent.left_site)
+        //     return true;
+        if(child.right_site === parent.left_site && child.left_site === parent.right_site){
+            return true;
+        }
+        else{
+            const x = this.get_coord(parent).x;
+            return child.edge.start_point.x < x;
+        }
+    }
+
+    
+    console.log(child.site === parent.right_site, child.site === parent.left_site);
+
+    if(intersection === parent.edge.start_point){
+        if(parent.site && child.site === parent.site)
+            return child.is_left_half;
+        
+    }
+
+    if(child.site === parent.right_site){
+        return false;
+    }
+
+    if(child.site === parent.left_site){
+        return true;
+    }
+    
+    const x = parent.is_breakpoint? this.get_coord(parent).x : parent.site.x;
+    // const child_x = child.is_breakpoint? this.get_coord(child).x : child.site.x;
+
+    if(child.site.x < x){
+        return true;
+    }
+    return false;
+    
+}
+
+
 export {Parabola_Tree};
