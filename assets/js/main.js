@@ -11,6 +11,10 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     width = +svg.attr("width"),
     height = +svg.attr("height");
     var site_radius = 2.5;
+    // svg.attr("width",'100%')
+    // svg.attr("height", '100%')
+
+    console.log(width, height);
 
     const x_offset = 0, y_offset = 0;
     var sites = d3.range(50)
