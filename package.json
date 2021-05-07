@@ -2,8 +2,22 @@
   "dependencies": {
     "express": "^4.17.1"
   },
-  "scripts":{
+  "scripts": {
     "start": "node server.js"
-  }
-  
+  },
+  "name": "voronoi_javascript",
+  "version": "1.0.0",
+  "main": "server.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ctkhanhly/voronoi_javascript.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ctkhanhly/voronoi_javascript/issues"
+  },
+  "homepage": "https://github.com/ctkhanhly/voronoi_javascript#readme",
+  "description": ""
 }
