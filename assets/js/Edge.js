@@ -32,15 +32,11 @@ function Line(start_point, left_site, right_site){
     const bisector_slope = -(right_site.x - left_site.x) / ( right_site.y  - left_site.y ); 
     this.a = -bisector_slope;
     this.b = 1.0;
-    // const x = (right_site.x + left_site.x) / 2.0;
-    // const y = (right_site.y + left_site.y) / 2.0;
     this.c = -start_point.y - this.a * start_point.x;
 
 }
 
 function Edge(start_point, left_site, right_site) {
-
-    // console.log('In edge', start_point, left_site, right_site);
 
     this.start_point = start_point;
     this.end_point = null;

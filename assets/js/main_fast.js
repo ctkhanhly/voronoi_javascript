@@ -7,7 +7,7 @@ return functionToCheck && {}.toString.call(functionToCheck) === '[object Functio
 console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
 
 (function(){
-    var svg = d3.select("svg.slow"),
+    var svg = d3.select("svg.fast"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
     var site_radius = 2.5;
@@ -17,7 +17,7 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
         .map(function(d) { return {x:Math.random() * width + x_offset, y:Math.random() * height + y_offset} ; });
 
 
-    var voronoi = new Voronoi(width, height, redraw, svg);
+    var voronoi = new Voronoi(width, height, redraw, svg, true);
 
     var polygon = svg.append("g")
         .attr('id', 'polygon')
@@ -89,7 +89,7 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
         console.log('redrawing the polygon', voronoi.polygons.length);
         polygon
             .attr("d", function(cell) { 
-               
+              
                 return  "M" + cell.points.join("L") + "Z"; 
             })
             .attr("fill", function(cell) { return  cell.color; })
@@ -99,9 +99,8 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     function redraw_beachline(beachline){
         
         beachline.attr('d', function(arc){ 
-           
+            
             return `M ${arc.p1.x} ${arc.p1.y} Q ${arc.p2.x} ${arc.p2.y}, ${arc.p3.x} ${arc.p3.y}`;
-           
         })
         .attr('stroke', 'blue')
         .attr('fill', 'transparent')
@@ -142,13 +141,11 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     });
 
 
-    var add_ran_button = document.getElementById('add-ran-btn');
-    var start_button = document.getElementById('start-btn');
-    var clear_button = document.getElementById('clear-btn');
-    var increase_site_button = document.getElementById('increase-btn');
-    var decrease_site_button = document.getElementById('decrease-btn');
-    var increase_speed_button = document.getElementById('increase-speed-btn');
-    var decrease_speed_button = document.getElementById('decrease-speed-btn');
+    var add_ran_button = document.getElementById('add-ran-btn-fast');
+    var start_button = document.getElementById('start-btn-fast');
+    var clear_button = document.getElementById('clear-btn-fast');
+    var increase_site_button = document.getElementById('increase-btn-fast');
+    var decrease_site_button = document.getElementById('decrease-btn-fast');
 
     start_button.addEventListener('click', (e)=>{
     
@@ -157,7 +154,6 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
 
     clear_button.addEventListener('click', (e)=>{
         voronoi.reset();
-        // console.log(voronoi.sites);
         redraw();
     });
 
@@ -174,8 +170,8 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     }
 
     window.addEventListener('keyup', (e)=>{
-
-        if(!e.shiftKey){
+        console.log(e.key, e.code, e.shiftKey);
+        if(e.shiftKey){
             if(e.key == "Up" || e.key == "ArrowUp")
             change_site_radius(0.5);
             else if(e.key == "Down" || e.key == "ArrowDown")
@@ -189,12 +185,6 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
             }
             else if(e.code == "KeyR"){
                 add_random_sites();
-            }
-            else if(e.key == "Left" || e.key == "ArrowLeft"){
-                voronoi.change_speed(-100);
-            }
-            else if(e.key == "Right" || e.key == "ArrowRight"){
-                voronoi.change_speed(100);
             }
         }
         
@@ -210,15 +200,9 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
         change_site_radius(-0.5);
     });
 
-    increase_speed_button.addEventListener('click', (e)=>{
-        voronoi.change_speed(-100);
-    });
-
-    decrease_speed_button.addEventListener('click', (e)=>{
-        voronoi.change_speed(100);
-    });
 
     add_ran_button.addEventListener('click', (e)=>{
         add_random_sites();
     });
+
 })();

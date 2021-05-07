@@ -28,8 +28,6 @@ import {Edge, Line, Point} from './Edge.js';
 
 function Parabola(site, is_left_half = true){
 
-    // console.log("Calling Parabola");
-
     this.RED = "RED";
     this.BLACK = "BLACK";
 
@@ -53,22 +51,13 @@ function Parabola(site, is_left_half = true){
 
 function BreakPoint(left_site, right_site = null, edge = null){
 
-    // console.log("Calling BreakPoint");
     Parabola.call(this, null);
-    
-    // this.RED = "RED";
-    // this.BLACK = "BLACK";
+   
 
     this.is_breakpoint = true;
     this.left_site = left_site;
     this.right_site = right_site;// only has site 2 if it's a break point
     this.edge = edge;// only has an edge is this is a break point
-
-    // this.left_child = null;
-    // this.right_child = null;
-
-    // this.color = this.RED;
-    // this.parent = null;
 
 }
 
@@ -76,26 +65,20 @@ BreakPoint.prototype = Object.create(Parabola.prototype);
 
 Parabola.prototype.get_line = function(ly){
 
-    // const ly = this.ly;
     const denom = 2*(this.site.y - ly);
     const a = 1.0/denom;
     const b = - 2*this.site.x / denom;
     const c = this.site.x * this.site.x / denom + ly / 2.0 + this.site.y / 2.0;
-    console.log("Calling get_line", ly, a, b,c,denom);
     return {a,b,c};
 }
 
 Parabola.prototype.set_left = function(left){
-
-    // console.log("Calling set_left");
 
     this.left_child = left;
     left.parent = this;
 }
 
 Parabola.prototype.set_right = function(right){
-
-    // console.log("Calling set_right");
 
     this.right_child = right;
     right.parent = this;
@@ -111,16 +94,12 @@ Parabola.prototype.get_sibling = function(){
 
 function Parabola_Tree(){
 
-    // console.log("Calling Parabola_Tree");
-
     this.root = null;
     this.EPS = 1e-6;
     this.ly = 0;
 }
 
 Parabola_Tree.prototype.set_ly = function(ly){
-
-    // console.log("Calling set_ly");
 
     this.ly = ly;
 }
@@ -140,7 +119,6 @@ Parabola_Tree.prototype.set_ly = function(ly){
 
 Parabola_Tree.prototype.get_edge_intersection = function(left_edge, right_edge){
 
-    // console.log("Calling get_edge_intersection");
 
     if(left_edge === right_edge){
         console.log('same edge');
@@ -148,7 +126,6 @@ Parabola_Tree.prototype.get_edge_intersection = function(left_edge, right_edge){
     }
     const {a:a1, b:b1, c:c1} = left_edge.line;
     const {a:a2, b:b2, c:c2} = right_edge.line;
-    console.log(a1, b1,c1, a2,b2,c2, left_edge, right_edge);
 
     if(a1 === a2){
         return null;
@@ -162,7 +139,6 @@ Parabola_Tree.prototype.get_edge_intersection = function(left_edge, right_edge){
     else{
         y = -a2*x - c2;
     }
-    console.log(x,y);
 
     /*
     Check for degerate case where intersection is not on the vector
@@ -171,33 +147,24 @@ Parabola_Tree.prototype.get_edge_intersection = function(left_edge, right_edge){
 
     if((x - left_edge.start_point.x) * left_edge.direction.x < 0)
     {
-        console.log('case 1');
         return null;
     }
 
     if((y - left_edge.start_point.y) * left_edge.direction.y < 0)
     {
-        console.log('case 2');
         return null;
     }
 
     if((x - right_edge.start_point.x) * right_edge.direction.x < 0)
     {
-        console.log('case 3');
         return null;
     }
 
     if((y - right_edge.start_point.y) * right_edge.direction.y < 0)
     {
-        console.log('case 4');
         return null;
     }
 
-    // if((x - a->start->x)/a->direction->x < 0) return 0;//remove parabola affects this direction
-	// if((y - a->start->y)/a->direction->y < 0) return 0;
-		
-	// if((x - b->start->x)/b->direction->x < 0) return 0;
-	// if((y - b->start->y)/b->direction->y < 0) return 0;	
     return new Point(x,y);
 }
 
@@ -218,25 +185,12 @@ Breakpoint is defined by the intersection of 2 arcs:
 
 Parabola_Tree.prototype.get_coord = function(breakpoint){
 
-    // console.log("Calling get_coord");
-
     if(!breakpoint.is_breakpoint){
-        // console.log(breakpoint);
         return breakpoint.site.x;
     }
 
     var left_arc = this.get_left_arc(breakpoint);
     var right_arc = this.get_right_arc(breakpoint);
-
-    // const left_arc = breakpoint.left_site;
-    // const right_arc = break_point.right_site;
-    // if(!left_arc){
-    //     left_arc = breakpoint.left_site;
-    // }
-
-    // if(!right_arc){
-    //     right_arc = breakpoint.right_site;
-    // }
    
     if(!left_arc || !right_arc){
         console.log('not a breakpoint get_coord');
@@ -253,11 +207,6 @@ Parabola_Tree.prototype.get_coord = function(breakpoint){
 
     const x1 = (-b - Math.sqrt(b*b - 4*a*c) ) / (2*a);
     const x2 = (-b + Math.sqrt(b*b - 4*a*c) ) / (2*a);
-
-    // console.log('get_coord');
-    // this.print_node(left_arc);
-    // this.print_node(right_arc);
-    // console.log(x1,x2,a1,b1,c1,a2,b2,c2);
 
     var x;
     /*
@@ -283,15 +232,12 @@ Precessor of breakpoint
 
 Parabola_Tree.prototype.get_left_arc = function(breakpoint){
     
-    // console.log("calling get_left_arc");
     if(breakpoint === null){
-        console.log('breakpoint is null');
         return null;
     } 
 
     var node = breakpoint.left_child;
     if(node === null){
-        console.log('get_left_arc not a breakpoint');
     }
     while(node && node.is_breakpoint){
         node = node.right_child;
@@ -307,17 +253,14 @@ Successor of breakpoint
 
 Parabola_Tree.prototype.get_right_arc = function(breakpoint){
 
-    // console.log("Calling get_right_arc");
-
     if(breakpoint === null){
-        console.log('breakpoint is null');
         return null;
     }
         
     
     var node = breakpoint.right_child;
     if(node === null){
-        console.log('get_right_arc not a breakpoint');
+       
     }
     while(node && node.is_breakpoint){
         node = node.left_child;
@@ -341,7 +284,7 @@ Parabola_Tree.prototype.get_left_breakpoint = function(parabola){
     // console.log("Calling get_left_breakpoint");
 
     if(parabola === null){
-        console.log('parabola is null');
+        // console.log('parabola is null');
         return null;
     }
 
@@ -371,7 +314,7 @@ Parabola_Tree.prototype.get_right_breakpoint = function(parabola){
     // console.log("Calling get_right_breakpoint");
 
     if(parabola === null){
-        console.log('parabola is null');
+        // console.log('parabola is null');
         return null;
     }
 
@@ -391,18 +334,16 @@ Assume node exists, handle in insertion
 
 Parabola_Tree.prototype.lookup_vertical_arc = function(site){
 
-    console.log("Calling lookup_vertical_arc");
+    // console.log("Calling lookup_vertical_arc");
 
     var node = this.root;
     while(node.is_breakpoint){
         const x = this.get_coord(node).x;
         if(site.x < x){
             node = node.left_child;
-            console.log('left',x, site.x);
         }
         else{
             node = node.right_child;
-            console.log('right',x, site.x);
         }
     }
     return node;
@@ -415,12 +356,6 @@ Intersection of vertical line from site
 
 Parabola_Tree.prototype.get_y_arc_at_x = function(arc, x){
 
-    // console.log("Calling get_y_arc_at_x");
-
-    // const denom = 2*(arc.site.y - ly);
-    // const a = 1.0/denom;
-    // const b = - arc.site.x / denom;
-    // const c = arc.site.x * arc.site.x / denom + ly / 2.0 + arc.site.y / 2.0;
     const {a,b,c} = arc.get_line(this.ly);
     return a * x * x + b*x + c;
 }
@@ -428,7 +363,6 @@ Parabola_Tree.prototype.get_y_arc_at_x = function(arc, x){
 
 Parabola_Tree.prototype.get_leaves = function(node, leaves){
 
-    // console.log("Calling get_leaves");
     if(node == null)
         return;
     if(!node.is_breakpoint){
@@ -441,7 +375,6 @@ Parabola_Tree.prototype.get_leaves = function(node, leaves){
 
 Parabola_Tree.prototype.print_tree = function(node){
 
-    // console.log('calling print_tree');
     if(node == null)
         return;
     var queue = [node];

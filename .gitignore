@@ -1,4 +1,6 @@
 ./voronoi_main.js
 ./assets/js/test_rb.js
+./assets/js/Red_Black_Operations.js
 ./node_modules/*
 ./delete_rb.cpp
+./para.py

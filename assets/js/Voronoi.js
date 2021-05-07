@@ -1,12 +1,11 @@
-import {Parabola_Tree} from './Red_Black_Operations.js';
-import {Parabola, BreakPoint} from './Parabola_Tree.js';
+import {Parabola, BreakPoint,Parabola_Tree} from './Parabola_Tree.js';
 import {Event, Event_Queue} from './Event_Queue.js';
 import { Point, Edge } from './Edge.js';
 import { Cell } from './Cell.js';
 
 
 
-function Voronoi(points, width, height){
+function Voronoi(width, height, redraw, svg, fast = false){
 
     function range(start, end, num_pts){
         if(num_pts == 0) return [];
@@ -21,10 +20,9 @@ function Voronoi(points, width, height){
 
     this.EPS = 1;
     this.edges = [];
-    this.sites = points.map((pt)=> new Cell(pt.x, height-pt.y));
+    this.sites = [];
     this.tree = new Parabola_Tree();
-    const fake_events = range(0, height, 1000).map((y)=> new Event(new Point(0, y), false, true));
-    this.queue = new Event_Queue(this.sites, null);
+    this.queue = new Event_Queue();
     this.width= width;
     this.height = height;
     this.ly = height;
@@ -38,78 +36,138 @@ function Voronoi(points, width, height){
     this.boundary.push({x1:width, y1:0, x2:width, y2:height, color:'black'});
     this.boundary.push({x1:0, y1:height, x2:width, y2:height, color:'black'});
 
-    
-
-    this.get_edges();
-    // this.remove_duplicate_edges();
-    // this.clip_edges();
+    this.svg = svg;
+    this.redraw = redraw;
+    this.speed = 1000;
+    this.fast = fast;
 
 }
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 
-Voronoi.prototype.get_edges = async function(){
 
-    // console.log("Calling Voronoi get_edges");
+Voronoi.prototype.reset = function(){
+    this.clean();
+    this.sites = [];
+}
 
-    while(!this.queue.is_empty()){
+Voronoi.prototype.clean = function(){
+    this.edges = [];
+    this.tree = new Parabola_Tree();
+    this.ly = this.height;
+    this.segments = [];
+    this.beachlines = [];
+    this.polygons = [];
+    
+}
 
-        const e = this.queue.top();
-        this.queue.pop();
-        this.ly = e.point.y;
-        this.tree.set_ly(this.ly);
-        console.log('EVENT', e, this.queue.events.length, e.point.x, e.point.y, this.tree.ly, e.is_circle);
+Voronoi.prototype.start = function(){
+    this.clean();
+    this.get_edges();
+}
+
+
+Voronoi.prototype.add_site = function(point){
+    const height = this.height;
+    this.sites.push(new Cell(point.x, point.y));
+  
+}
+
+Voronoi.prototype.process_event = function(){
+    var THIS = this;
+    var speed = this.speed;
+    setTimeout(function(){
+        const e = THIS.queue.top();
+        THIS.queue.pop();
+        THIS.ly = e.point.y;
+        THIS.tree.set_ly(THIS.ly);
 
         if(e.fake){//draw event
-            this.draw();
-            // await sleep(1);
+            
         }
         else if(e.is_circle){
             if(e.cEvent_valid)
-                this.remove_parabola(e);
+            THIS.remove_parabola(e);
         }
         else{
-            this.insert_parabola(e.parabola);
+            THIS.insert_parabola(e.parabola);
         }
-
-        /*
-            Redraw svg for each event
-        */
-
-    }
-    this.tree.set_ly(0);
-    this.draw();
-    // return this.edges;
+        
+        if(!THIS.queue.is_empty()){
+            THIS.draw();
+            THIS.process_event();
+        }
+        else{
+            THIS.tree.set_ly(0);
+            THIS.draw(true);
+        }
+    }, speed);
 }
 
-Voronoi.prototype.draw = function(){
+Voronoi.prototype.process_event_fast = function(){
+    var THIS = this;
+    while(!THIS.queue.is_empty()){
+        const e = THIS.queue.top();
+        THIS.queue.pop();
+        THIS.ly = e.point.y;
+        THIS.tree.set_ly(THIS.ly);
 
-    // console.log("Calling Voronoi draw");
+        if(e.fake){//draw event
+            
+        }
+        else if(e.is_circle){
+            if(e.cEvent_valid)
+            THIS.remove_parabola(e);
+        }
+        else{
+            THIS.insert_parabola(e.parabola);
+        }
+    }
+    THIS.tree.set_ly(0);
+    THIS.draw(true);
+}
 
-    this.clip_edges();//.join_neighbor_edges();
-    this.get_beachlines().clip_beaches();
-    this.get_polygons(this.segments);
+Voronoi.prototype.change_speed = function(val){
+    this.speed += val;
+}
+
+Voronoi.prototype.get_edges = async function(){
+
+    this.queue.build(this.sites, null);
+    var THIS = this;
+    if(!this.fast){
+        this.process_event();
+    }  
+    else{
+        this.process_event_fast();
+    }
+    
+}
+
+Voronoi.prototype.draw = function(is_last=false){
+
+    console.log("Calling Voronoi draw");
+
+    this.clip_edges();
+    if(!is_last){
+        this.get_beachlines().clip_beaches();
+    }
+    else {
+        console.log('hello reaching the end');
+        this.beachlines = [];
+        this.get_polygons(this.segments);
+    }
+
     console.log(this.beachlines);
     console.log(this.boundary);
     console.log(this.segments);
     console.log(this.polygons);
     console.log(this.edges);
+    var THIS = this;
+    THIS.redraw();
+  
 }
 
 Voronoi.prototype.insert_parabola = function(parabola){
-
-    // const parabola = Parabola(site);
-    /*
-
-    Connect parabola to cell
-
-    */
-
-    
-    // console.log("Calling Voronoi insert_parabola", parabola.is_breakpoint, parabola.site.x, parabola.site.y, parabola.left_site, parabola.right_site);
-    // console.log(parabola);
 
     if(this.tree.root === null){
         this.tree.root = parabola;
@@ -118,15 +176,11 @@ Voronoi.prototype.insert_parabola = function(parabola){
 
     
     const vertical_arc = this.tree.lookup_vertical_arc(parabola.site);
-    this.tree.print_tree(this.tree.root);
-    console.log(`vertical_arc `, vertical_arc.is_breakpoint, vertical_arc.site.x, vertical_arc.site.y, vertical_arc.left_site, vertical_arc.right_site );
     if(vertical_arc.circle_event){
         vertical_arc.circle_event.cEvent_valid = false;
         vertical_arc.circle_event = null;
     }
 
-    // const lvertical_breakpt = get_left_breakpoint(vertical_arc);
-    // const lvertical_breakpt_x = this.get_X(lvertical_breakpt);
     const y_intersect = this.tree.get_y_arc_at_x(vertical_arc, parabola.site.x);
     vertical_arc.is_breakpoint = true;
     vertical_arc.left_site = parabola.site;
@@ -143,48 +197,22 @@ Voronoi.prototype.insert_parabola = function(parabola){
     left_edge.neighbor = vertical_arc.edge;
     const left_breakpoint = new BreakPoint(vertical_arc.site, parabola.site, left_edge);
 
-    console.log('insert_parabola', intersection.x, intersection.y, parabola.site.x, parabola.site.y, vertical_arc.site.x, vertical_arc.site.y,
-    vertical_arc.edge.line.a, vertical_arc.edge.line.b, vertical_arc.edge.line.c, vertical_arc.get_line(this.ly).a, 
-    vertical_arc.get_line(this.ly).b, vertical_arc.get_line(this.ly).c, vertical_arc.edge.direction, left_edge.direction );
-
-    /*
-    Red Black version
-    */
-    
-    // this.tree.insert(p2, intersection);
-    // this.tree.print_tree(this.tree.root);
-    // this.tree.insert(left_breakpoint, intersection);
-    // this.tree.print_tree(this.tree.root);
-    // this.tree.insert(parabola, intersection);
-    // this.tree.print_tree(this.tree.root);
-    // this.tree.insert(p1, intersection);
-    // this.tree.print_tree(this.tree.root);
-
-    /*
-    End Red Black version
-    */
 
     left_edge.neighbor = vertical_arc.edge;
+    /*
+        Add the edge's start point to Cell
+    */
     this.edges.push(left_edge);
     this.edges.push(vertical_arc.edge);
 
-    /*
-    No Red Black version
-    */
+  
     vertical_arc.set_right(p2);
     vertical_arc.set_left(left_breakpoint);
     left_breakpoint.set_right(parabola);
     left_breakpoint.set_left(p1);
-    /*
-    End No Red Black version
-    */
-    
+   
     this.check_circle(p1);
     this.check_circle(p2);
-
-    /*
-    Add the edge's start point to Cell
-    */
 
 }
 
@@ -193,8 +221,6 @@ This is a circle event
 */
 
 Voronoi.prototype.remove_parabola = function(e){
-
-    console.log("Calling Event_Queue remove_parabola");
 
     var parabola = e.parabola;
     const left_breakpoint = this.tree.get_left_breakpoint(parabola);
@@ -225,19 +251,10 @@ Voronoi.prototype.remove_parabola = function(e){
 
     left_breakpoint.edge.end_point = circle_center;
     right_breakpoint.edge.end_point = circle_center;
-    console.log('left_breakpoint', left_breakpoint.edge.start_point.x, left_breakpoint.edge.start_point.y, 
-    left_breakpoint.edge.end_point.x, left_breakpoint.edge.end_point.y);
-    console.log('right_breakpoint', right_breakpoint.edge.start_point.x, right_breakpoint.edge.start_point.y, 
-    right_breakpoint.edge.end_point.x, right_breakpoint.edge.end_point.y);
-    this.tree.print_node(left_arc);
-    this.tree.print_node(right_arc);
-    console.log('circle center', circle_center, left_arc.site.x, left_arc.site.y, right_arc.site.x, right_arc.site.y, parabola.site.x, parabola.site.y);
-
 
     var higher_parent = parabola;
     var node = parabola;
     while(node){
-        // node = node.parent;
 
         if(node === left_breakpoint)
             higher_parent = node;
@@ -250,7 +267,6 @@ Voronoi.prototype.remove_parabola = function(e){
     higher_parent.edge = new Edge(circle_center, left_arc.site, right_arc.site);
     console.log(higher_parent.edge);
     this.edges.push(higher_parent.edge);
-    // this.remove(parabola);
 
     var parent = parabola.parent;
     const gparent = parent.parent;
@@ -261,11 +277,6 @@ Voronoi.prototype.remove_parabola = function(e){
     else{
         gparent.set_right(sib);
     }
-    // parent.parent = null;
-    // parabola.parent = null;
-    // parent.left_child = parent.right_child
-    // delete parent;
-    // delete parabola;
     parent = null;
     parabola = null;
 
@@ -276,9 +287,6 @@ Voronoi.prototype.remove_parabola = function(e){
 
 Voronoi.prototype.get_distance = function(p1, p2){
 
-    // console.log("Calling get_distance");
-
-
     const dx = p2.x - p1.x;
     const dy = p2.y - p1.y;
     return Math.sqrt(dx*dx + dy * dy);
@@ -286,35 +294,11 @@ Voronoi.prototype.get_distance = function(p1, p2){
 
 Voronoi.prototype.check_circle = function (parabola){
 
-    // console.log("Calling Voronoi check_circle", parabola.site.x, parabola.site.y);
-
     const left_breakpoint = this.tree.get_left_breakpoint(parabola);
     const right_breakpoint = this.tree.get_right_breakpoint(parabola);
-    // if(!left_breakpoint){
-
-    // }
-    // if(!right_breakpoint){
-
-    // }
+ 
     const left_arc = this.tree.get_left_arc(left_breakpoint);
     const right_arc = this.tree.get_right_arc(right_breakpoint);
-
-
-    // console.log(left_arc, right_arc, left_breakpoint, right_breakpoint);
-    // console.log('left_arc');
-    // this.tree.print_node(left_arc);
-    // console.log('right_arc');
-    // this.tree.print_node(right_arc);
-    // console.log('left_breakpoint');
-    // this.tree.print_node(left_breakpoint);
-    // console.log('right_breakpoint');
-    // this.tree.print_node(right_breakpoint);
-    
-    console.log('check circle');
-    this.tree.print_node(left_breakpoint);
-    this.tree.print_node(right_breakpoint);
-    this.tree.print_node(left_arc);
-    this.tree.print_node(right_arc);
 
     if(!left_arc || !right_arc || left_arc === right_arc
         || left_arc.site.x === right_arc.site.x && left_arc.site.y === right_arc.site.y){
@@ -324,21 +308,17 @@ Voronoi.prototype.check_circle = function (parabola){
     
     
     var center = this.tree.get_edge_intersection(left_breakpoint.edge, right_breakpoint.edge);
-    console.log('center', center);
     if(center == null)
         return;
 
     var radius = this.get_distance(parabola.site, center);
     
-    center.y -= radius;//(point, is_circle, fake = false, parabola = null) 
+    /* change order */
+    center.y -= radius;
     var circle_event = new Event(center, true, false, parabola);
 
-    console.log(circle_event);
-    
     parabola.circle_event = circle_event;
-    console.log(this.queue.events.length);
     this.queue.push(circle_event);
-    console.log(this.queue.events.length);
 }
 
 /*
@@ -351,15 +331,12 @@ https://math.stackexchange.com/questions/1257576/convert-quadratic-bezier-curve-
 
 Voronoi.prototype.get_beachlines = function (){
 
-    // console.log("Calling Event_Queue get_beachlines");
-
     var leaves = [];
     var arcs = [];
     
-    this.tree.print_tree(this.tree.root);
-    
     this.tree.get_leaves(this.tree.root, leaves);
     console.log(leaves.length);
+    console.log(this.ly);
     leaves.forEach((leaf)=>console.log(leaf.site.x, leaf.site.y));
     const width = this.width;
     leaves.forEach((leaf)=>console.log(leaf.get_line(this.ly).a, leaf.get_line(this.ly).b, leaf.get_line(this.ly).c));
@@ -395,17 +372,10 @@ Voronoi.prototype.get_beachlines = function (){
 
 Voronoi.prototype.get_boundaries = function(){
 
-    // console.log("Calling Event_Queue get_boundaries");
-
-
     const ly = this.ly;
     const height = this.height;
     if(ly < this.boundary[3].y1){
-        // return this.boundary.map(function (line) {
-        //     if(line.y1 === line.y2 && line.y1 === height && ly < height)
-        //      line = {line, y1: height, y2: height, color:'green'};
-        //     return line;
-        //  } );
+    
         if(this.boundary.length < 5){
             this.boundary.push({y1: ly, x1: 0, x2: this.width, y2: ly, color:'green'});
         }
@@ -421,8 +391,6 @@ Voronoi.prototype.get_boundaries = function(){
 
 Voronoi.prototype.get_line_from_end_points = function(pt1, pt2){
 
-    // console.log("Calling Event_Queue get_line_from_end_points");
-
     if(pt1.y == pt2.y){
         return {a: 0.0, b:1.0, c : -pt2.y};
     }
@@ -436,8 +404,6 @@ Voronoi.prototype.get_line_from_end_points = function(pt1, pt2){
 }
 
 Voronoi.prototype.get_beach_line_intersection = function(beach_pt, line){
-
-    // console.log("Calling Event_Queue get_beach_line_intersection");
 
     const {a:d, b:f, c:e} = line;
     const {a,b,c, p1, p3} = beach_pt;
@@ -482,7 +448,7 @@ Voronoi.prototype.get_beach_line_intersection = function(beach_pt, line){
 
 Voronoi.prototype.clip_beaches = function(){
 
-    // console.log("Calling Event_Queue clip_beaches");
+    console.log("Calling Voronoi clip_beaches");
 
 
     var new_pts = [];
@@ -494,6 +460,7 @@ Voronoi.prototype.clip_beaches = function(){
         
         if(!intersection || !intersection.x1){
             new_pts.push({p1,p2,p3});
+            console.log(p1,p2, p3);
         }
         else{
             var pp1 = p1;
@@ -503,28 +470,15 @@ Voronoi.prototype.clip_beaches = function(){
             var pp2 = new Point(x2,y2);
             new_pts.push({p1:pp1, p2:pp2, p3:pp3});
 
-            // if(intersection.x2){
-            //     pp1 = Point(intersection.x2, intersection.y2);
-            // }
-            // else{
-            //     pp1 = Point(intersection.x1, intersection.y1);
-            // }
             pp1 = new Point(intersection.x2, intersection.y2);
             pp3 = p3;
             x2 = (pp1.x + pp3.x ) / 2.0;
             y2 = (pp3.x - pp1.x) / 2.0 * (2*a * pp1.x + b) + pp1.y;
             pp2 = new Point(x2,y2);
             new_pts.push({p1:pp1, p2:pp2, p3:pp3});
+            console.log(p1,p2, pp1, pp2, p3);
         }
-        
-        // else {
-        //     var pp1 = p1;
-        //     var pp3 = Point(intersection.x, intersection.y);
-        //     var x2 = (pp1.x + pp3.x ) / 2.0;
-        //     var y2 = (pp3.x - pp1.x) / 2.0 * (2*a * pp1.x + b) + pp1.y;
-        //     var pp2 = Point(x2,y2);
-        //     new_pts.push({p1:pp1, p2:pp2, p3:pp3});
-        // }
+       
     }
     return this.beachlines = new_pts;
    
@@ -541,7 +495,6 @@ Voronoi.prototype.clip_point = function(edge){
 
     const { start_point, end_point, left_site, right_site, line, direction} = edge;
 
-    console.log("Calling Event_Queue clip_point", start_point, direction);
     var new_start, new_end;
     const height = this.height;
     const width = this.width;
@@ -550,19 +503,6 @@ Voronoi.prototype.clip_point = function(edge){
         return null;
     }
 
-    /*
-    Assume no for now, handle later
-    */
-    // if(line.a === 0){//horizontal line
-    //     if(start_point.y < 0 || start_point.y > this.height){
-    //         return null;
-    //     }
-    //     new_start = Point(Math.max(start_point.x, 0), start_point.y);
-    //     new_end
-    // }
-    // else if(line.b === 0){//vertical line
-
-    // }
     new_start = start_point;
     if(start_point.x >= 0 && start_point.x <= width && start_point.y >= 0 && start_point.y <= height){
         new_start = start_point;
@@ -648,9 +588,6 @@ Voronoi.prototype.clip_point = function(edge){
         }
     }
 
-    
-    console.log(new_start, new_end, this.get_distance(new_start, new_end));
-
     if(this.get_distance(new_start, new_end) < this.EPS)
         return null;
     
@@ -659,8 +596,6 @@ Voronoi.prototype.clip_point = function(edge){
 
 
 Voronoi.prototype.clip_edges = function (){
-
-    // console.log("Calling Voronoi clip_edges");
 
     var segments = [];
     var e_idx_to_seg_idx = {};
@@ -681,47 +616,10 @@ Voronoi.prototype.clip_edges = function (){
         }
     }
     this.segments = segments.filter((segment)=>segment);
-    console.log(this.segments, segments);
     return this;
 }
 
-Voronoi.prototype.join_neighbor_edges = function (){
-
-    // console.log("Calling Event_Queue join_neighbor_edges");
-
-    for(var i = 0; i < this.segments.length; ++i){
-        var segment = this.segments[i];
-        if(segment.neighbor){
-            console.log('joined', segment, segment.neighbor);
-            segment.source = segment.neighbor.end;
-            delete segment.neighbor;
-            segment.neighbor = null;
-            // segment.neighbor.mark = true;
-        }
-        // else segment.neighbor = true;
-    }
-    return this.segments = this.segments.filter(function(segment){ return segment ;});
-
-    // return this.segments = this.segments.map(function (segment){
-    //     // if(!segment){
-    //     //     console.log('segment undefined');
-    //     //     return null;
-    //     // }
-    //     if(segment.neighbor){
-    //         segment.end_point = segment.neighbor.end_point;
-    //         delete segment.neighbor;
-    //         // console.log('nei', segment.neighbor);
-    //         // segment.neighbor = null;
-    //         // segment.neighbor.mark = true;
-    //         // return segment;
-    //     }
-    //     return segment;
-    // }).filter(function(segment){ return segment ;});
-}
-
 Voronoi.prototype.get_polygons = function(segments){
-
-    console.log("Calling Event_Queue get_polygon");
 
     this.sites.map((site)=>site.points=[]);
     segments.forEach(function (segment){
@@ -756,10 +654,10 @@ Voronoi.prototype.get_polygons = function(segments){
     top_right.points.push(new Point(this.width, 0));
     bottom_left.points.push(new Point(0, this.height));
     bottom_right.points.push(new Point(this.width, this.height));
-    // console.log(top_left.x, top_left.y, top_right.x, top_right.y, bottom_left.x, bottom_left.y, bottom_right.x, bottom_right.y);
 
-    // this.site
-    this.polygons = this.sites.map((site) => site.remove_dup().sort_points());
+    console.log('sites are', this.sites);
+    
+    this.polygons = this.sites.map((site) => site.remove_dup());
     const height = this.height;
     this.polygons = this.polygons.map((site)=>{
         return {points : site.points.map((pt)=>`${pt.x} ${pt.y}`),
