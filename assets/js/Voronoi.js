@@ -80,7 +80,6 @@ Voronoi.prototype.process_event = function(){
         THIS.queue.pop();
         THIS.ly = e.point.y;
         THIS.tree.set_ly(THIS.ly);
-        console.log('event', THIS.ly);
 
         if(e.fake){//draw event
             
@@ -146,23 +145,16 @@ Voronoi.prototype.get_edges = async function(){
 
 Voronoi.prototype.draw = function(is_last=false){
 
-    console.log("Calling Voronoi draw");
 
     this.clip_edges();
     if(!is_last){
         this.get_beachlines().clip_beaches();
     }
     else {
-        console.log('hello reaching the end');
         this.beachlines = [];
         this.get_polygons(this.segments);
     }
 
-    console.log(this.beachlines);
-    console.log(this.boundary);
-    console.log(this.segments);
-    console.log(this.polygons);
-    console.log(this.edges);
     var THIS = this;
     THIS.redraw();
   
@@ -250,6 +242,7 @@ Voronoi.prototype.remove_parabola = function(e){
     Add the edge's end point to Cell
     */
 
+    
     left_breakpoint.edge.end_point = circle_center;
     right_breakpoint.edge.end_point = circle_center;
 
@@ -266,7 +259,7 @@ Voronoi.prototype.remove_parabola = function(e){
     }
 
     higher_parent.edge = new Edge(circle_center, left_arc.site, right_arc.site);
-    console.log(higher_parent.edge);
+
     this.edges.push(higher_parent.edge);
 
     var parent = parabola.parent;
@@ -293,6 +286,11 @@ Voronoi.prototype.get_distance = function(p1, p2){
     return Math.sqrt(dx*dx + dy * dy);
 }
 
+Voronoi.prototype.check_dir_up = function(edge){
+    return ( edge.direction.x > 0 && edge.direction.y > 0 )
+        || ( edge.direction.x < 0 && edge.direction.y > 0 );
+}
+
 Voronoi.prototype.check_circle = function (parabola){
 
     const left_breakpoint = this.tree.get_left_breakpoint(parabola);
@@ -312,7 +310,11 @@ Voronoi.prototype.check_circle = function (parabola){
     if(center == null)
         return;
     
-    left_breakpoint.edge.end_point =  right_breakpoint.edge.end_point = center;
+    /* Add fake end points for animation */
+    if( this.check_dir_up(left_breakpoint.edge) )
+        left_breakpoint.edge.end_point = center;
+    if( this.check_dir_up(right_breakpoint.edge) )
+        right_breakpoint.edge.end_point = center;
 
     var radius = this.get_distance(parabola.site, center);
     
@@ -334,17 +336,11 @@ https://math.stackexchange.com/questions/1257576/convert-quadratic-bezier-curve-
 
 Voronoi.prototype.get_beachlines = function (){
 
-    console.log('voronoi get_beachlines');
-
     var leaves = [];
     var arcs = [];
     
     this.tree.get_leaves(this.tree.root, leaves);
-    console.log(leaves.length);
-    console.log(this.ly);
-    leaves.forEach((leaf)=>console.log(leaf.site.x, leaf.site.y));
     const width = this.width;
-    leaves.forEach((leaf)=>console.log(leaf.get_line(this.ly).a, leaf.get_line(this.ly).b, leaf.get_line(this.ly).c));
     
     for(var i = 0; i < leaves.length; ++i){
         const left_breakpoint = this.tree.get_left_breakpoint(leaves[i]);
@@ -369,10 +365,8 @@ Voronoi.prototype.get_beachlines = function (){
         p2.x = (p1.x + p3.x ) / 2.0;
         p2.y = (p3.x - p1.x) / 2.0 * (2*a * p1.x + b) + p1.y;
         arcs.push({p1, p2, p3, a, b, c});
-        console.log(p1, p2, p3, a,b,c,left_breakpoint, right_breakpoint);
     }
     this.beachlines = arcs;
-    console.log(arcs);
     return this;
 }
 
@@ -454,9 +448,6 @@ Voronoi.prototype.get_beach_line_intersection = function(beach_pt, line){
 
 Voronoi.prototype.clip_beaches = function(){
 
-    console.log("Calling Voronoi clip_beaches");
-
-
     var new_pts = [];
     for(var i = 0; i < this.beachlines.length; ++i){
         const beach_pt = this.beachlines[i];
@@ -466,7 +457,6 @@ Voronoi.prototype.clip_beaches = function(){
         
         if(!intersection || !intersection.x1){
             new_pts.push({p1,p2,p3});
-            console.log(p1,p2, p3);
         }
         else{
             var pp1 = p1;
@@ -482,7 +472,6 @@ Voronoi.prototype.clip_beaches = function(){
             y2 = (pp3.x - pp1.x) / 2.0 * (2*a * pp1.x + b) + pp1.y;
             pp2 = new Point(x2,y2);
             new_pts.push({p1:pp1, p2:pp2, p3:pp3});
-            console.log(p1,p2, pp1, pp2, p3);
         }
        
     }
@@ -660,8 +649,6 @@ Voronoi.prototype.get_polygons = function(segments){
     top_right.points.push(new Point(this.width, 0));
     bottom_left.points.push(new Point(0, this.height));
     bottom_right.points.push(new Point(this.width, this.height));
-
-    console.log('sites are', this.sites);
     
     this.polygons = this.sites.map((site) => site.remove_dup());
     const height = this.height;

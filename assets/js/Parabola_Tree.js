@@ -67,7 +67,6 @@ Parabola.prototype.get_line = function(ly){
 
     var denom = 2*(this.site.y - ly);
     if(denom === 0){
-        console.log('denom is 0', denom, this.site.x, this.site.y, ly);
         denom = 0.1;
     }
     
