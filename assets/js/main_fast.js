@@ -172,7 +172,7 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     }
 
     window.addEventListener('keyup', (e)=>{
-        console.log(e.key, e.code, e.shiftKey);
+        
         if(e.shiftKey){
             if(e.key == "Up" || e.key == "ArrowUp")
             change_site_radius(0.5);

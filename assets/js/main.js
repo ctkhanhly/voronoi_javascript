@@ -161,7 +161,6 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
 
     clear_button.addEventListener('click', (e)=>{
         voronoi.reset();
-        // console.log(voronoi.sites);
         redraw();
     });
 

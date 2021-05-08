@@ -65,7 +65,12 @@ BreakPoint.prototype = Object.create(Parabola.prototype);
 
 Parabola.prototype.get_line = function(ly){
 
-    const denom = 2*(this.site.y - ly);
+    var denom = 2*(this.site.y - ly);
+    if(denom === 0){
+        console.log('denom is 0', denom, this.site.x, this.site.y, ly);
+        denom = 0.1;
+    }
+    
     const a = 1.0/denom;
     const b = - 2*this.site.x / denom;
     const c = this.site.x * this.site.x / denom + ly / 2.0 + this.site.y / 2.0;

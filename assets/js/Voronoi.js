@@ -80,6 +80,7 @@ Voronoi.prototype.process_event = function(){
         THIS.queue.pop();
         THIS.ly = e.point.y;
         THIS.tree.set_ly(THIS.ly);
+        console.log('event', THIS.ly);
 
         if(e.fake){//draw event
             
@@ -310,6 +311,8 @@ Voronoi.prototype.check_circle = function (parabola){
     var center = this.tree.get_edge_intersection(left_breakpoint.edge, right_breakpoint.edge);
     if(center == null)
         return;
+    
+    left_breakpoint.edge.end_point =  right_breakpoint.edge.end_point = center;
 
     var radius = this.get_distance(parabola.site, center);
     
@@ -330,6 +333,8 @@ https://math.stackexchange.com/questions/1257576/convert-quadratic-bezier-curve-
 */
 
 Voronoi.prototype.get_beachlines = function (){
+
+    console.log('voronoi get_beachlines');
 
     var leaves = [];
     var arcs = [];
@@ -364,6 +369,7 @@ Voronoi.prototype.get_beachlines = function (){
         p2.x = (p1.x + p3.x ) / 2.0;
         p2.y = (p3.x - p1.x) / 2.0 * (2*a * p1.x + b) + p1.y;
         arcs.push({p1, p2, p3, a, b, c});
+        console.log(p1, p2, p3, a,b,c,left_breakpoint, right_breakpoint);
     }
     this.beachlines = arcs;
     console.log(arcs);
