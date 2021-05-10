@@ -10,17 +10,11 @@
         margin:  auto;
         margin-top:4%;
         margin-bottom: 4%;
-        /* padding-left: 5vw;
-        padding-right: 5vw; */
         padding: 5vw;
         background: -webkit-linear-gradient(to bottom, #C9D6FF 0%, #E2E2E2 100%);
         background-color:  #C9D6FF;
         font-size:20px;
         border-radius: 10px;
-        /* background: rgb(0,0,0,0.1); */
-        /* background: linear-gradient(to bottom, #C9D6FF 0%, #E2E2E2 100%); */
-        /* background: url('assets/imgs/background7.png'); */
-        /* background: rgb(248,248,255, 0.5); */
         }
     </style>
   <head>
@@ -114,7 +108,7 @@
         <div id="katex-breakpoint-eq">
 
         </div>
-        A Breakpoint is consists of:
+        A Breakpoint consists of:
         <ul>
             <li>A left site that defines the parabola on the left</li>
             <li>A right site that defines the parabola on the right</li>
@@ -165,7 +159,7 @@
             If there was a circle event associated with p1, we will mark this circle event cValid as a false alarm since this circle
             contains p2.
             After adding two new edges and updating the tree, we will check the neighbor arcs (arc4, arc5) if they exist
-            for potential circle events defined by (arc4, arc1, arc2), (arc1, arc2, arc5) and add it to the event queue.
+            for potential circle events defined by (arc5, arc1, arc2), (arc1, arc2, arc9) and add it to the event queue.
             In the implementation followed by the idea of <a href="http://blog.ivank.net/fortunes-algorithm-and-implementation.html#impl_cpp">this blog</a>, 
             I just check for the edge intersection. For example, if I check for circle event in which arc1 is the disappearing arc, I will look for its Left
             breakpoint that is the intersection of (arc4, arc1) and a right breakpoint that is the intersection of (arc1, arc2) and find the intersection 
@@ -191,10 +185,17 @@
                 <img src="./assets/images/circle_event_merged.png" style="height:30%;width:30%;margin:auto;"/>
             </div>
             <p>
-                Here arc 0 is the original parabola defined by p1, arc 7 is the part of the parabola defined by p1 after breakpoint b1.
-            Arc 6 disappears at a circle event where b1 and b2 converge to the center of the circle. 
-            We will delete the lower breakpoint between b1, b2 (in this case, we remove b2) and the parabola from the tree and modify 
-            breakpoint b1 to be the breakpoint of arc_1 and arc_2. We will also add a new edge whose starting point starts from b1.
+                <p>
+                    Here arc0 is the original parabola defined by p1, arc7 is the part of the parabola defined by p1 after breakpoint b1.
+                    Arc6 disappears at a circle event where b1 and b2 converge to the center of the circle. Here if there are circle event associated
+                    with arc1 or arc2, then we mark that event as a false alarm since arc6 has already disappeared before the event happens.
+                </p>
+               
+                <p>
+                    We will delete the lower breakpoint between b1, b2 (in this case, we remove b2) and the parabola from the tree and modify 
+            breakpoint b1 to be the breakpoint of arc1 and arc2. We will also add a new edge whose starting point starts from b1.
+                </p>
+            
             <div>
                 <img src="./assets/images/tree_site_event_before.png" style="height:10%;width:10%;margin:auto;"/>
                 <img src="./assets/images/tree_circle_event1.png" style="height:20%;width:20%;margin:auto;"/>
@@ -202,7 +203,7 @@
                 <img src="./assets/images/tree_circle_event3.png" style="height:20%;width:20%;margin:auto;"/>
             </div>
             <p>
-                After removing the parabola, we need to check for two new potential circle events (arc_3, arc_1, arc_2), (arc_1, arc_2, arc_4).
+                After removing the parabola, we need to check for two new potential circle events (arc5, arc1, arc2), (arc1, arc2, arc9).
                 In general, we have to check for a circle event when there are new three consecutive set of arcs.
             </p>
              Since the implementation does not have a balancing component for the tree data structure, it runs in O(n^2) and the event queue runs in O((m+n)log(n+m)) time.
