@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<!-- KaTeX requires the use of the HTML5 doctype. Without it, KaTeX may not render properly -->
+<html>
+    <style>
+        .card{
+        
+        min-width: 275;
+        max-width: 60vw;
+        min-height: 40vh;
+        margin:  auto;
+        margin-top:4%;
+        margin-bottom: 4%;
+        /* padding-left: 5vw;
+        padding-right: 5vw; */
+        padding: 5vw;
+        background: -webkit-linear-gradient(to bottom, #C9D6FF 0%, #E2E2E2 100%);
+        background-color:  #C9D6FF;
+        font-size:20px;
+        border-radius: 10px;
+        /* background: rgb(0,0,0,0.1); */
+        /* background: linear-gradient(to bottom, #C9D6FF 0%, #E2E2E2 100%); */
+        /* background: url('assets/imgs/background7.png'); */
+        /* background: rgb(248,248,255, 0.5); */
+        }
+    </style>
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.9/dist/katex.min.css" integrity="sha384-r/BYDnh2ViiCwqZt5VJVWuADDic3NnnTIEOv4hOh05nSfB6tjWpKmn1kUHOVkMXc" crossorigin="anonymous">
+
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.9/dist/katex.min.js" integrity="sha384-zDIgORxjImEWftZXZpWLs2l57fMX9B3yWFPN5Ecabe211Hm5ZG/OIz2b07DYPUcH" crossorigin="anonymous"></script>
+
+    <!-- To automatically render math in text elements, include the auto-render extension: -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.9/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"
+        onload="renderMathInElement(document.body);"></script>
+  </head>
+  <script type="module" type="text/javascript">
+      import katex from 'https://cdn.jsdelivr.net/npm/katex@0.13.9/dist/katex.mjs';
+      var para_eq_div = document.getElementById('katex-parabola-eq');
+      var breakpoint_eq_div = document.getElementById('katex-breakpoint-eq');
+      var edge_intersection_eq_div = document.getElementById('edge-intersection-eq');
+
+      katex.render("{(x-px)}^2 + {(y - py)}^2 = {(y - ly)}^2\\\\ " +
+      "y = \\frac{x^2}{2(py-ly)} - \\frac{2px}{2(py-ly)} + \\frac{px^2}{2(py-ly)} + \\frac{ly}{2} + \\frac{py}{2}\\\\"+
+      "a = \\frac{1}{2(py-ly)}, b = -2px, c = \\frac{px^2}{2(py-ly)} + \\frac{ly}{2} + \\frac{py}{2}\\\\" + 
+      "y = ax^2 + bx + c ", para_eq_div, {
+        throwOnError: true
+     });
+
+     katex.render("y = a_1x^2 + b_1x + c_1 = a_2x^2 + b_2x + c_2\\\\ " +
+      "A = a_1-a_2, B = b_1-b_2, C = c_1-c_2\\\\" +
+      "x = \\frac{\\pm B - \\sqrt{B^2 - 4AC}}{2A}", breakpoint_eq_div, {
+        throwOnError: true
+     });
+
+     katex.render("y = \\frac{-b_1}{a_1}x - \\frac{c_1}{a_1} = -\\frac{-b_2}{a_2}x - \\frac{c_2}{a_2} \\\\ " +
+      "x = \\frac{\\frac{c_2}{a_2} - \\frac{c_1}{a_1} } {\\frac{-b_1}{a_1} - \\frac{-b_2}{a_2}} ", edge_intersection_eq_div, {
+        throwOnError: true
+     });
+
+  </script>
+  <body>
+    <div class="card">
+        The goal of this project is to demonstrate how beachline data structure changes during Fortune's algorithm and emphasizes
+        the following lemmas taken from Computational Geometry book by:
+        <ul>
+            <li> 
+                The only way in which a new arc can appear on the beach line is through a site event
+            </li>
+            <li>
+                The only way in which an existing arc can disappear from the beach line is through a circle event
+            </li>
+            <li>
+                Breakpoints on the beach line trace out the Voronoi Diagram
+            </li>
+            <li>
+                The Voronoi Diagram is a collection of boundary of points that are closest to each site
+            </li>
+            <li>
+                The vertices of the Voronoi Diagram is the center of three or more sites such that there are no other sites inside this circle
+            </li>
+        </ul>
+        
+        
+        
+        <p>
+            There are two main data structures in my implementation. 
+            The first data structure is a binary tree in which internal nodes are breakpoints (or intersections of two parabolic arcs), and 
+            leaves are the parabolas. Each arc on the beachline comes from a parabola of a site and is defined by two endpoints, which 
+            can either be its intersection with the bounding box or with another parabola. Therefore, the endpoints of each arc defines a distinct interval
+            and all intervals are continuous and non-overlapping, which together makes up the beachline. Each arc draws the set of points that have 
+            an equal distance from the site that the arc is defined and the current sweepline ly. For a given site (px, py) and sweepline
+            ly, we obtain the following equation that defines the arc:
+        </p>
+        
+
+        <div id="katex-parabola-eq">
+
+        </div>
+        Thus a parabola consists of
+        <ul>
+            <li>A Site Coordinate (x,y)</li>
+            <li>a,b,c which is not stored explicitly but computed for each event ly and a given site</li>
+        </ul>
+
+        <p>
+            I used the idea of <a href="http://blog.ivank.net/fortunes-algorithm-and-implementation.html#impl_cpp">this blog</a> to implement the binary tree. In a site event,
+        we need to be able to search a vertical arc that is right above the site, we can do so by searching on the x coordinates of the breakpoints
+        to arrive at the appropriate arc on the leaf level. The x coordinate can be computed by solving for the intersection of the two parabolas
+        that define this breakpoint, which changes as ly changes since the parabola equation depends on both ly and a site coordinate. Each breakpoint 
+        is defined by a parabola on the left and one on the right, and its coordinate can be computed as:
+        
+        </p>
+        
+        <div id="katex-breakpoint-eq">
+
+        </div>
+        A Breakpoint is consists of:
+        <ul>
+            <li>A left site that defines the parabola on the left</li>
+            <li>A right site that defines the parabola on the right</li>
+            <li>An edge that it traces</li>
+        </ul>
+       
+        Each arc(site, a,b,c) on the beachline is defined by a site, a left breakpoint and a right breakpoint. If there is no left breakpoint, the left bound of the arc
+        is the intersection of the parabola defined by the site and the bounding box and the case where there is no right breakpoint is defined similarly.
+        We will later use the left and right intersection for 3 point Belzier curve to draw the arcs on screen. The start point p1(x1,y1) and end point p3(x3,y3) 
+        will be the left and right intersection. We calculate control point p2 as: p2 = ((x1+x3)/2, (x3-x1)/2 * (2a+x1+b) + y1).
+        We don't have to store the left and right breakpoint explicitly, since they will just be left and right parent of the arc.
+
+        <p> 
+
+        The second data structure is an Event Queue which is a max binary heap 
+        and sorted by highest to lowest y values and smallest to highest x values of two points share the same height. Each Event in the 
+        Event Queue can either be a circle event, which would have the attribute cValid to indicate whether this event is still valid 
+        (more on this below) and the attribute circle_event, and a site. Each circle event is associated with a disappearabce of a parabolic
+        arc, which is also the middle arc in a three-consecutive set of arcs on the beachline. The second type of event is the site event 
+        which will introduces a new arc associated with this site and potentially split an existing arc into two arcs. The y coordinate of each
+        event defines the new sweepline ly.
+        </p>
+        <p>
+            Below is an illustration of a site event where a new site p2 appears.
+        </p>
+        <div>
+            <img src="./assets/images/site_event_no_neighbor.png" style="height:30%;width:30%;margin:auto"/>
+        </div>
+        
+        <p>
+            When the site just appears, the arc defined by p2 is just a straightline to a vertical arc right above it defined by p1 (arc0). The intersection of arc0
+            and the vertical line from p2 defines two breakpoints b1,b2 which originally coincides as illustrated in the picture. 
+            As the event line sweeps downward, we will see in the next illustration that b1 and b2 start diverging, and the points where b1 and b2 trace as the event
+            line sweeps down defines the two edges that have opposite directions and have the original intersection as the start endpoint of these two edges (blue dot).
+        </p>
+        <div>
+            <img src="./assets/images/site_event_split_neighbor.png" style="height:30%;width:30%;margin:auto"/>
+        </div>
+        <p>
+            We will update the tree as the following:
+        </p>
+        <div>
+            <img src="./assets/images/tree_site_event_before.png" style="height:10%;width:10%;margin:auto;"/>
+            <img src="./assets/images/tree_site_event_after.png" style="height:20%;width:20%;margin:auto;"/>
+        </div>
+
+        <p>
+            If there was a circle event associated with p1, we will mark this circle event cValid as a false alarm since this circle
+            contains p2.
+            After adding two new edges and updating the tree, we will check the neighbor arcs (arc4, arc5) if they exist
+            for potential circle events defined by (arc4, arc1, arc2), (arc1, arc2, arc5) and add it to the event queue.
+            In the implementation followed by the idea of <a href="http://blog.ivank.net/fortunes-algorithm-and-implementation.html#impl_cpp">this blog</a>, 
+            I just check for the edge intersection. For example, if I check for circle event in which arc1 is the disappearing arc, I will look for its Left
+            breakpoint that is the intersection of (arc4, arc1) and a right breakpoint that is the intersection of (arc1, arc2) and find the intersection 
+            of the edges associated with left and right breakpoints. Each edge is defined by a start, an end point, and a line equation: ay + bx + c = 0, adding
+            we can compute the intersection as:
+            <div id="edge-intersection-eq">
+
+            </div>
+            <p>
+                This intersection will become the center of the circle event and we add the lowest point of this circle to the event queue (the intersection of the 
+                vertical line from the center with the circle).
+                Below is an illustration for a circle event.
+            </p>
+            
+            <div>
+                <img src="./assets/images/circle_event_unmerged.png" style="height:30%;width:30%;margin:auto;"/>
+            </div>
+            <p>
+                Here we see that the edges traced by b1 and b2 are converging to a circle center.
+            </p>
+            
+            <div>
+                <img src="./assets/images/circle_event_merged.png" style="height:30%;width:30%;margin:auto;"/>
+            </div>
+            <p>
+                Here arc 0 is the original parabola defined by p1, arc 7 is the part of the parabola defined by p1 after breakpoint b1.
+            Arc 6 disappears at a circle event where b1 and b2 converge to the center of the circle. 
+            We will delete the lower breakpoint between b1, b2 (in this case, we remove b2) and the parabola from the tree and modify 
+            breakpoint b1 to be the breakpoint of arc_1 and arc_2. We will also add a new edge whose starting point starts from b1.
+            <div>
+                <img src="./assets/images/tree_site_event_before.png" style="height:10%;width:10%;margin:auto;"/>
+                <img src="./assets/images/tree_circle_event1.png" style="height:20%;width:20%;margin:auto;"/>
+                <img src="./assets/images/tree_circle_event2.png" style="height:20%;width:20%;margin:auto;"/>
+                <img src="./assets/images/tree_circle_event3.png" style="height:20%;width:20%;margin:auto;"/>
+            </div>
+            <p>
+                After removing the parabola, we need to check for two new potential circle events (arc_3, arc_1, arc_2), (arc_1, arc_2, arc_4).
+                In general, we have to check for a circle event when there are new three consecutive set of arcs.
+            </p>
+             Since the implementation does not have a balancing component for the tree data structure, it runs in O(n^2) and the event queue runs in O((m+n)log(n+m)) time.
+             where n is the number of sites and m is the number of vertices of the Voronoi Diagram (the circle centers).
+        </p>
+            
+        </p>
+    </div>
+    
+    
+  </body>
+</html>

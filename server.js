@@ -8,6 +8,9 @@ app.use( '/assets', express.static( path.join( __dirname, 'assets' ) ) );
 
 app.get('/', (req, res) => {
   res.sendFile('./index.html', {root: __dirname });
+});
+app.get('/details', (req, res)=>{
+  res.sendFile('./report.html', {root: __dirname });
 })
 
 app.listen(port, () => {

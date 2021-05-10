@@ -11,8 +11,6 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     width = +svg.attr("width"),
     height = +svg.attr("height");
     var site_radius = 2.5;
-    // svg.attr("width",'100%')
-    // svg.attr("height", '100%')
 
     console.log(width, height);
 
@@ -75,7 +73,8 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
             .attr("y1", function(seg) { return seg.y1; })
             .attr("x2", function(seg) { return seg.x2; })
             .attr("y2", function(seg) { return seg.y2; })
-            .attr('stroke', function(seg){ return seg.color; });
+            .attr('stroke', function(seg){ return seg.color; })
+            .attr('stroke-width', function(seg){ return seg.color=='green'?5: 1;});
     }
 
     function redraw_site(site) {
@@ -135,6 +134,11 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
         var site_enter = site.enter().append("circle").attr("r", site_radius);
         site = site.merge(site_enter).call(redraw_site);
         
+
+        boundary = boundary.data(voronoi.boundary), 
+        boundary.exit().remove();
+        var boundary_enter = boundary.enter().append('line');
+        boundary = boundary.merge(boundary_enter).call(redraw_boundary);
         
     }
 
@@ -194,10 +198,10 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
                 add_random_sites();
             }
             else if(e.key == "Left" || e.key == "ArrowLeft"){
-                voronoi.change_speed(-100);
+                voronoi.change_speed(100);
             }
             else if(e.key == "Right" || e.key == "ArrowRight"){
-                voronoi.change_speed(100);
+                voronoi.change_speed(-100);
             }
         }
         

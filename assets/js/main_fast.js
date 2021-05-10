@@ -11,8 +11,6 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     width = +svg.attr("width"),
     height = +svg.attr("height");
     var site_radius = 2.5;
-    // svg.attr("width",'100%')
-    // svg.attr("height", '100%')
 
     const x_offset = 0, y_offset = 0;
     var sites = d3.range(50)
@@ -172,7 +170,7 @@ console.log(isFunction(Voronoi), Voronoi, {}.toString.call(Voronoi));
     }
 
     window.addEventListener('keyup', (e)=>{
-        
+
         if(e.shiftKey){
             if(e.key == "Up" || e.key == "ArrowUp")
             change_site_radius(0.5);

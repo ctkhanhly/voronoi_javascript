@@ -97,6 +97,7 @@ Voronoi.prototype.process_event = function(){
             THIS.process_event();
         }
         else{
+            this.ly = 0;
             THIS.tree.set_ly(0);
             THIS.draw(true);
         }
@@ -122,6 +123,7 @@ Voronoi.prototype.process_event_fast = function(){
             THIS.insert_parabola(e.parabola);
         }
     }
+    this.ly = 0;
     THIS.tree.set_ly(0);
     THIS.draw(true);
 }
@@ -147,6 +149,7 @@ Voronoi.prototype.draw = function(is_last=false){
 
 
     this.clip_edges();
+    this.get_boundaries();
     if(!is_last){
         this.get_beachlines().clip_beaches();
     }
@@ -386,7 +389,6 @@ Voronoi.prototype.get_boundaries = function(){
     else if(this.boundary.length === 5){
         this.boundary.pop();
     }
-    return this.boundary;
 }
 
 Voronoi.prototype.get_line_from_end_points = function(pt1, pt2){
