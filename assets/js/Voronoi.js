@@ -314,10 +314,10 @@ Voronoi.prototype.check_circle = function (parabola){
         return;
     
     /* Add fake end points for animation */
-    if( this.check_dir_up(left_breakpoint.edge) )
-        left_breakpoint.edge.end_point = center;
-    if( this.check_dir_up(right_breakpoint.edge) )
-        right_breakpoint.edge.end_point = center;
+    // if( this.check_dir_up(left_breakpoint.edge) )
+    //     left_breakpoint.edge.end_point = center;
+    // if( this.check_dir_up(right_breakpoint.edge) )
+    //     right_breakpoint.edge.end_point = center;
 
     var radius = this.get_distance(parabola.site, center);
     

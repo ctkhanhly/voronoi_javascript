@@ -44,19 +44,19 @@ Cell.prototype.convex_hull = function(){
 
 Cell.prototype.remove_dup = function(){
     var new_pts = [];
-    this.sort_points();
+    this.sort_points(true);
 
-    for(var i = 0; i < this.points.length; ++i){
-        if(!this.points[i])
-            continue;
-        if(new_pts.length == 0 || this.get_distance(this.points[i], new_pts[new_pts.length - 1]) > this.EPS){
-            new_pts.push(this.points[i]);
-        }
-    }
+    // for(var i = 0; i < this.points.length; ++i){
+    //     if(!this.points[i])
+    //         continue;
+    //     if(new_pts.length == 0 || this.get_distance(this.points[i], new_pts[new_pts.length - 1]) > this.EPS){
+    //         new_pts.push(this.points[i]);
+    //     }
+    // }
     
 
-    this.points = new_pts;
-    this.convex_hull();
+    // this.points = new_pts;
+    // this.convex_hull();
     return this;
 }
 
@@ -70,13 +70,16 @@ Cell.prototype.sort_points = function(convex_sort = false){
             p = this.points[i];
         }
     }  
+    var points = this.points.filter((pt)=>pt!=p);
     const this_cell = this;
-    this.points.sort(function(a, b){
+    points.sort(function(a, b){
         if(convex_sort && this_cell.collinear(p, a, b)){
             return this_cell.get_distance(p, a) < this_cell.get_distance(p,b);
         }
         return Math.atan2(a.y-p.y, a.x-p.x) - Math.atan2(b.y-p.y, b.x-p.x);
     });
+    points.unshift(p);
+    this.points = points;
     return this;
 }
 
