@@ -46,17 +46,17 @@ Cell.prototype.remove_dup = function(){
     var new_pts = [];
     this.sort_points(true);
 
-    // for(var i = 0; i < this.points.length; ++i){
-    //     if(!this.points[i])
-    //         continue;
-    //     if(new_pts.length == 0 || this.get_distance(this.points[i], new_pts[new_pts.length - 1]) > this.EPS){
-    //         new_pts.push(this.points[i]);
-    //     }
-    // }
+    for(var i = 0; i < this.points.length; ++i){
+        if(!this.points[i])
+            continue;
+        if(new_pts.length == 0 || this.get_distance(this.points[i], new_pts[new_pts.length - 1]) > this.EPS){
+            new_pts.push(this.points[i]);
+        }
+    }
     
 
-    // this.points = new_pts;
-    // this.convex_hull();
+    this.points = new_pts;
+    this.convex_hull();
     return this;
 }
 
